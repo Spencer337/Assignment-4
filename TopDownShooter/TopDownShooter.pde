@@ -6,6 +6,7 @@ ArrayList <Zombie> zombies;
 ArrayList <Bullet> bullets;
 ArrayList <Herb> herbs;
 ArrayList <Ammo> ammos;
+ArrayList <Licker> lickers;
 float theta; // For sinusoidal health bar
 int invincibility; // Player will have an invincibility window after taking damage
 int p; // The number of bullets the player currently has
@@ -88,7 +89,7 @@ void draw() {
       bullets.get(i).fly();
     }
 
-    // Draw an array of zombies
+    // Move an array of zombies
     if (frameCount % 60 == 0) {
       for (int i = 0; i < zombies.size(); i++) {
         zombies.get(i).move(survivor.getLocation());
@@ -100,9 +101,19 @@ void draw() {
       zombies.add(new Zombie());
     }
 
+    // Every 6 seconds, create a new zombie
+    if (frameCount % 300 == 0) {
+      lickers.add(new Licker());
+    }
+
     // Draw all zombies in the array
     for (int i = 0; i < zombies.size(); i++) {
       zombies.get(i).display();
+    }
+
+    // Draw all lickers in the array
+    for (int i = 0; i < lickers.size(); i++) {
+      lickers.get(i).display();
     }
 
     // Draw an array of ammo
@@ -150,6 +161,29 @@ void draw() {
       }
     }
 
+    // If a bullet in the pistol bullets array, collides with a licker from the licker array, delete both the bullet
+    // Delete the licker only if it reaches zero health
+    // After a licker is removed, spawn a herb, ammo, or nothing
+    for (int i = bullets.size() - 1; i >= 0; i--) {
+      Bullet b = bullets.get(i);
+      for (int j = lickers.size() - 1; j >= 0; j--) {
+        Licker z = lickers.get(j);
+        if (z.collides(b.returnLocation()) == true) {
+          bullets.remove(i);
+          lickers.get(j).lowerHealth();
+          if (lickers.get(j).returnHealth() == 0) {
+            int r = int(random(0, 3));
+            if (r == 0) {
+              ammos.add(new Ammo(lickers.get(j).lickerLocation()));
+            } else if (r == 1) {
+              herbs.add(new Herb(lickers.get(j).lickerLocation()));
+            }
+            lickers.remove(j);
+          }
+        }
+      }
+    }
+
     // If a bullet collides with the border walls, remove it
     for (int i = bullets.size() - 1; i >= 0; i--) {
       PVector l = bullets.get(i).returnLocation();
@@ -168,6 +202,18 @@ void draw() {
         }
       }
     }
+    
+    // If a licker and player touch, damage the player
+    // After the player gets damaged, they cannot be injured again for 10 seconds
+    if (invincibility >= 600) {
+      for (int i = 0; i < lickers.size(); i++) {
+        if (lickers.get(i).collides(survivor.getLocation()) == true) {
+          survivor.lowerHealth();
+          invincibility = 0;
+        }
+      }
+    }
+    
     invincibility++;
     drawAmmoHUD();
     if (survivor.returnHealth() <= 0) {
@@ -197,6 +243,7 @@ void mousePressed() {
       survivor = new Player(isLeon);
       bullets = new ArrayList <Bullet>();
       zombies = new ArrayList <Zombie>();
+      lickers = new ArrayList <Licker>();
       herbs = new ArrayList <Herb>();
       ammos = new ArrayList <Ammo>();
       theta = 0.0;
@@ -208,6 +255,7 @@ void mousePressed() {
       survivor = new Player(isLeon);
       bullets = new ArrayList <Bullet>();
       zombies = new ArrayList <Zombie>();
+      lickers = new ArrayList <Licker>();
       herbs = new ArrayList <Herb>();
       ammos = new ArrayList <Ammo>();
       theta = 0.0;
@@ -222,18 +270,34 @@ void keyPressed() {
     // If w key is pressed, face up, and then move up
     if (key == 'w') {
       survivor.moveUp();
+      // Each time the player moves, all the lickers move as well
+      for (int i = 0; i < lickers.size(); i++) {
+        lickers.get(i).move(survivor.getLocation());
+      }
     }
     // If a key is pressed, face left, and then move left
     else if (key == 'a') {
       survivor.moveLeft();
+      // Each time the player moves, all the lickers move as well
+      for (int i = 0; i < lickers.size(); i++) {
+        lickers.get(i).move(survivor.getLocation());
+      }
     }
     // If s key is pressed, face down, and then move down
     else if (key == 's') {
       survivor.moveDown();
+      // Each time the player moves, all the lickers move as well
+      for (int i = 0; i < lickers.size(); i++) {
+        lickers.get(i).move(survivor.getLocation());
+      }
     }
     // If d key is pressed, face right, and then move right
     else if (key == 'd') {
       survivor.moveRight();
+      // Each time the player moves, all the lickers move as well
+      for (int i = 0; i < lickers.size(); i++) {
+        lickers.get(i).move(survivor.getLocation());
+      }
     }
     // If space key is pressed, and the player has at least one bullet, shoot bullet
     else if (key == ' ') {
@@ -244,8 +308,7 @@ void keyPressed() {
         p--;
       }
     }
-  }
-  else if (state == 2) {
+  } else if (state == 2) {
     state = 0;
   }
 }

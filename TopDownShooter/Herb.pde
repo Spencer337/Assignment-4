@@ -16,7 +16,7 @@ class Herb {
   
   // If the player touches the herb, collect it and return true
   boolean collect(PVector player) {
-    if (player.dist(location) <= 10){
+    if (player.dist(location) <= 25){
       return true;
     }
     else {
