@@ -4,6 +4,7 @@ PImage claireStill;
 PImage sprites;
 ArrayList <Zombie> zombies;
 ArrayList <Bullet> bullets;
+ArrayList <Shotgun> pellets;
 ArrayList <Grenade> grenades;
 ArrayList <Herb> herbs;
 ArrayList <Ammo> ammos;
@@ -95,6 +96,12 @@ void draw() {
     for (int i = 0; i < bullets.size(); i++) {
       bullets.get(i).display();
       bullets.get(i).fly();
+    }
+
+    // Draw pellets when they are shot, and have them move straight forward
+    for (int i = 0; i < pellets.size(); i++) {
+      pellets.get(i).display();
+      pellets.get(i).fly();
     }
 
     // Draw grenades when they are shot, and have them move straight forward until they explode
@@ -214,11 +221,55 @@ void draw() {
       }
     }
 
+    // If a pellet in the pellets array, collides with an enemy, remove both the shotgun pellet and the enemy
+    // After an enemy is removed, spawn a herb, ammo, or nothing
+    for (int i = pellets.size() - 1; i >= 0; i--) {
+      Shotgun b = pellets.get(i);
+      
+      // Check shotgun pellets against lickers
+      for (int j = lickers.size() - 1; j >= 0; j--) {
+        Licker l = lickers.get(j);
+        if (l.collides(b.returnLocation(), 20) == true) {
+          pellets.remove(i);
+          int r = int(random(0, 3));
+          if (r == 0) {
+            ammos.add(new Ammo(lickers.get(j).lickerLocation()));
+          } else if (r == 1) {
+            herbs.add(new Herb(lickers.get(j).lickerLocation()));
+          }
+          lickers.remove(j);
+        }
+      }
+
+      // Check shotgun pellets against zombies
+      for (int j = zombies.size() - 1; j >= 0; j--) {
+        Zombie z = zombies.get(j);
+        if (z.collides(b.returnLocation(), 15) == true) {
+          pellets.remove(i);
+          int r = int(random(0, 3));
+          if (r == 0) {
+            ammos.add(new Ammo(zombies.get(j).zombieLocation()));
+          } else if (r == 1) {
+            herbs.add(new Herb(zombies.get(j).zombieLocation()));
+          }
+          zombies.remove(j);
+        }
+      }
+    }
+
     // If a bullet collides with the border walls, remove it
     for (int i = bullets.size() - 1; i >= 0; i--) {
       PVector l = bullets.get(i).returnLocation();
       if (l.x < 0 || l.x > width || l.y < 70 || l.y > 360) {
         bullets.remove(i);
+      }
+    }
+    
+    // If a pellet collides with the border walls, remove it
+    for (int i = pellets.size() - 1; i >= 0; i--) {
+      PVector l = pellets.get(i).returnLocation();
+      if (l.x < 0 || l.x > width || l.y < 70 || l.y > 360) {
+        pellets.remove(i);
       }
     }
 
@@ -301,6 +352,7 @@ void mousePressed() {
       survivor = new Player(isLeon);
       bullets = new ArrayList <Bullet>();
       grenades = new ArrayList <Grenade>();
+      pellets = new ArrayList <Shotgun>();
       zombies = new ArrayList <Zombie>();
       lickers = new ArrayList <Licker>();
       herbs = new ArrayList <Herb>();
@@ -317,6 +369,7 @@ void mousePressed() {
       survivor = new Player(isLeon);
       bullets = new ArrayList <Bullet>();
       grenades = new ArrayList <Grenade>();
+      pellets = new ArrayList <Shotgun>();
       zombies = new ArrayList <Zombie>();
       lickers = new ArrayList <Licker>();
       herbs = new ArrayList <Herb>();
@@ -373,14 +426,34 @@ void keyPressed() {
           // Lower the number of bullets by one
           p--;
         }
-      } 
-      else if (pistolEquipped == false && isLeon == false){
+      } else if (pistolEquipped == false && isLeon == false) {
         if (q > 0) {
           // Shoot the grenade based on the survivors location and direction
           grenades.add(new Grenade(survivor.returnOrigin(), survivor.returnDirection()));
           // Lower the number of grenades by one
           q--;
         }
+      } else if (pistolEquipped == false && isLeon == true) {
+        // Shoot the shotgun pellets based on the survivors location and direction
+        if (survivor.returnDirection() == 0) { // facing up
+          pellets.add(new Shotgun(survivor.returnOrigin(), 0));
+          pellets.add(new Shotgun(survivor.returnOrigin(), 4));
+          pellets.add(new Shotgun(survivor.returnOrigin(), 5));
+        } else if (survivor.returnDirection() == 1) { // facing left
+          pellets.add(new Shotgun(survivor.returnOrigin(), 1));
+          pellets.add(new Shotgun(survivor.returnOrigin(), 4));
+          pellets.add(new Shotgun(survivor.returnOrigin(), 6));
+        } else if (survivor.returnDirection() == 2) { // facing down
+          pellets.add(new Shotgun(survivor.returnOrigin(), 2));
+          pellets.add(new Shotgun(survivor.returnOrigin(), 6));
+          pellets.add(new Shotgun(survivor.returnOrigin(), 7));
+        } else if (survivor.returnDirection() == 3) { // facing right
+          pellets.add(new Shotgun(survivor.returnOrigin(), 3));
+          pellets.add(new Shotgun(survivor.returnOrigin(), 5));
+          pellets.add(new Shotgun(survivor.returnOrigin(), 7));
+        }
+        // Lower the number of grenades by one
+        q--;
       }
     }
     // If e key is pressed, change weapon
