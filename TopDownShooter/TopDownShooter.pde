@@ -2,6 +2,9 @@ Player survivor;
 PImage leonStill;
 PImage claireStill;
 PImage sprites;
+PImage shotgun;
+PImage pistol;
+PImage launcher; 
 ArrayList <Zombie> zombies;
 ArrayList <Bullet> bullets;
 ArrayList <Shotgun> pellets;
@@ -26,6 +29,9 @@ void setup() {
   leonStill = loadImage("leon-image.png");
   claireStill = loadImage("claire-image.png");
   sprites = loadImage("RE2Sprites.png");
+  shotgun = loadImage("shotgun.png");
+  pistol = loadImage("pistol.png");
+  launcher = loadImage("grenade-launcher.png");
   invincibility = 600;
   isLeon = true;
   state = 0;
@@ -162,7 +168,7 @@ void draw() {
     for (int i = 0; i < ammos.size(); i++) {
       ammos.get(i).display();
     }
-    
+
     // Draw an array of special ammo
     for (int i = 0; i < specials.size(); i++) {
       specials.get(i).display();
@@ -175,12 +181,12 @@ void draw() {
         p += 3;
       }
     }
-    
+
     // Check if player is touching special ammo, then remove
     for (int i = specials.size() - 1; i >= 0; i--) {
       if (specials.get(i).collect(survivor.getLocation()) == true) {
         specials.remove(i);
-        q += 3;
+        q += 2;
       }
     }
 
@@ -360,12 +366,41 @@ void draw() {
 
 // Draw the number of bullets in the bottom right corner
 void drawAmmoHUD() {
-  fill(191, 158, 48);
-  int j = 380;
-  rectMode(CORNERS);
-  for (int i = 0; i < p; i++) {
-    rect(j, 370, j + 5, 390);
-    j -= 10;
+  // Draw pistol bullets
+  if (pistolEquipped == true) {
+    fill(191, 158, 48);
+    int j = 380;
+    rectMode(CORNERS);
+    for (int i = 0; i < p; i++) {
+      rect(j, 370, j + 5, 390);
+      j -= 10;
+    }
+    pistol.resize(50, 40);
+    image(pistol, 5, 360);
+  }
+  // Draw grenades
+  else if (pistolEquipped == false && isLeon == false) {
+    fill(40, 90, 19);
+    int j = 370;
+    rectMode(CORNERS);
+    for (int i = 0; i < q; i++) {
+      rect(j, 370, j + 20, 390);
+      j -= 25;
+    }
+    launcher.resize(100, 40);
+    image(launcher, 5, 355);
+  }
+  // Draw shotgun bullets
+  else if (pistolEquipped == false && isLeon == true) {
+    fill(160, 35, 10);
+    int j = 380;
+    rectMode(CORNERS);
+    for (int i = 0; i < q; i++) {
+      rect(j, 370, j + 10, 390);
+      j -= 15;
+    }
+    shotgun.resize(80, 30);
+    image(shotgun, 5, 360);
   }
 }
 
@@ -386,7 +421,7 @@ void mousePressed() {
       specials = new ArrayList <SpecialAmmo>();
       theta = 0.0;
       p = 8;
-      q = 8;
+      q = 5;
       timer = 100;
       state = 1;
     } else if (mouseX > 240 && mouseX < 370 && mouseY > 165 && mouseY < 380) {
@@ -404,7 +439,7 @@ void mousePressed() {
       specials = new ArrayList <SpecialAmmo>();
       theta = 0.0;
       p = 8;
-      q = 8;
+      q = 5;
       timer = 100;
       state = 1;
     }
