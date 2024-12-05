@@ -2,7 +2,7 @@ class Herb {
   PVector location;
   
   Herb(PVector p) {
-    // Set the herb location to the zombie's location
+    // Set the herb location to the enemy's location
     location = new PVector(p.x,p.y);
   }
   

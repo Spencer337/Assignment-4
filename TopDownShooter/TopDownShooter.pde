@@ -8,6 +8,7 @@ ArrayList <Shotgun> pellets;
 ArrayList <Grenade> grenades;
 ArrayList <Herb> herbs;
 ArrayList <Ammo> ammos;
+ArrayList <SpecialAmmo> specials;
 ArrayList <Licker> lickers;
 float theta; // For sinusoidal health bar
 int invincibility; // Player will have an invincibility window after taking damage
@@ -123,6 +124,8 @@ void draw() {
               ammos.add(new Ammo(zombies.get(j).zombieLocation()));
             } else if (r == 1) {
               herbs.add(new Herb(zombies.get(j).zombieLocation()));
+            } else if (r == 2) {
+              specials.add(new SpecialAmmo(zombies.get(j).zombieLocation()));
             }
             zombies.remove(j);
           }
@@ -135,6 +138,8 @@ void draw() {
               ammos.add(new Ammo(lickers.get(k).lickerLocation()));
             } else if (r == 1) {
               herbs.add(new Herb(lickers.get(k).lickerLocation()));
+            } else if (r == 2) {
+              specials.add(new SpecialAmmo(lickers.get(k).lickerLocation()));
             }
             lickers.remove(k);
           }
@@ -157,12 +162,25 @@ void draw() {
     for (int i = 0; i < ammos.size(); i++) {
       ammos.get(i).display();
     }
+    
+    // Draw an array of special ammo
+    for (int i = 0; i < specials.size(); i++) {
+      specials.get(i).display();
+    }
 
     // Check if player is touching ammo, then remove
     for (int i = ammos.size() - 1; i >= 0; i--) {
       if (ammos.get(i).collect(survivor.getLocation()) == true) {
         ammos.remove(i);
         p += 3;
+      }
+    }
+    
+    // Check if player is touching special ammo, then remove
+    for (int i = specials.size() - 1; i >= 0; i--) {
+      if (specials.get(i).collect(survivor.getLocation()) == true) {
+        specials.remove(i);
+        q += 3;
       }
     }
 
@@ -192,6 +210,8 @@ void draw() {
             ammos.add(new Ammo(zombies.get(j).zombieLocation()));
           } else if (r == 1) {
             herbs.add(new Herb(zombies.get(j).zombieLocation()));
+          } else if (r == 2) {
+            specials.add(new SpecialAmmo(zombies.get(j).zombieLocation()));
           }
           zombies.remove(j);
         }
@@ -214,6 +234,8 @@ void draw() {
               ammos.add(new Ammo(lickers.get(j).lickerLocation()));
             } else if (r == 1) {
               herbs.add(new Herb(lickers.get(j).lickerLocation()));
+            } else if (r == 2) {
+              specials.add(new SpecialAmmo(lickers.get(j).lickerLocation()));
             }
             lickers.remove(j);
           }
@@ -225,7 +247,7 @@ void draw() {
     // After an enemy is removed, spawn a herb, ammo, or nothing
     for (int i = pellets.size() - 1; i >= 0; i--) {
       Shotgun b = pellets.get(i);
-      
+
       // Check shotgun pellets against lickers
       for (int j = lickers.size() - 1; j >= 0; j--) {
         Licker l = lickers.get(j);
@@ -236,6 +258,8 @@ void draw() {
             ammos.add(new Ammo(lickers.get(j).lickerLocation()));
           } else if (r == 1) {
             herbs.add(new Herb(lickers.get(j).lickerLocation()));
+          } else if (r == 2) {
+            specials.add(new SpecialAmmo(lickers.get(j).lickerLocation()));
           }
           lickers.remove(j);
         }
@@ -251,6 +275,8 @@ void draw() {
             ammos.add(new Ammo(zombies.get(j).zombieLocation()));
           } else if (r == 1) {
             herbs.add(new Herb(zombies.get(j).zombieLocation()));
+          } else if (r == 2) {
+            specials.add(new SpecialAmmo(zombies.get(j).zombieLocation()));
           }
           zombies.remove(j);
         }
@@ -264,7 +290,7 @@ void draw() {
         bullets.remove(i);
       }
     }
-    
+
     // If a pellet collides with the border walls, remove it
     for (int i = pellets.size() - 1; i >= 0; i--) {
       PVector l = pellets.get(i).returnLocation();
@@ -357,6 +383,7 @@ void mousePressed() {
       lickers = new ArrayList <Licker>();
       herbs = new ArrayList <Herb>();
       ammos = new ArrayList <Ammo>();
+      specials = new ArrayList <SpecialAmmo>();
       theta = 0.0;
       p = 8;
       q = 8;
@@ -374,6 +401,7 @@ void mousePressed() {
       lickers = new ArrayList <Licker>();
       herbs = new ArrayList <Herb>();
       ammos = new ArrayList <Ammo>();
+      specials = new ArrayList <SpecialAmmo>();
       theta = 0.0;
       p = 8;
       q = 8;
