@@ -4,15 +4,18 @@ PImage claireStill;
 PImage sprites;
 ArrayList <Zombie> zombies;
 ArrayList <Bullet> bullets;
+ArrayList <Grenade> grenades;
 ArrayList <Herb> herbs;
 ArrayList <Ammo> ammos;
 ArrayList <Licker> lickers;
 float theta; // For sinusoidal health bar
 int invincibility; // Player will have an invincibility window after taking damage
 int p; // The number of bullets the player currently has
+int q; // The number of special ammo the player currently has
 int state;
 boolean isLeon;
 int timer;
+boolean pistolEquipped;
 
 void setup() {
   // Set canvas size
@@ -80,7 +83,7 @@ void draw() {
       }
     }
 
-    // Draw the player objects
+    // Draw the player object
     survivor.display();
     // Draw player health as a sinusoidal line
     survivor.displayHealth(theta);
@@ -92,6 +95,45 @@ void draw() {
     for (int i = 0; i < bullets.size(); i++) {
       bullets.get(i).display();
       bullets.get(i).fly();
+    }
+
+    // Draw grenades when they are shot, and have them move straight forward until they explode
+    for (int i = 0; i < grenades.size(); i++) {
+      grenades.get(i).display();
+      grenades.get(i).fly();
+    }
+
+    // Each time a grenade reaches the end of it's lifespan it explodes, killing anything in the blast radius
+    for (int i = grenades.size() - 1; i >= 0; i--) {
+      if (grenades.get(i).returnLifespan() <= 0) {
+        grenades.get(i).explode();
+        Grenade g = grenades.get(i);
+        for (int j = zombies.size() - 1; j >= 0; j--) {
+          Zombie z = zombies.get(j);
+          if (z.collides(g.returnLocation(), 60) == true) {
+            int r = int(random(0, 3));
+            if (r == 0) {
+              ammos.add(new Ammo(zombies.get(j).zombieLocation()));
+            } else if (r == 1) {
+              herbs.add(new Herb(zombies.get(j).zombieLocation()));
+            }
+            zombies.remove(j);
+          }
+        }
+        for (int k = lickers.size() - 1; k >= 0; k--) {
+          Licker l = lickers.get(k);
+          if (l.collides(g.returnLocation(), 60) == true) {
+            int r = int(random(0, 3));
+            if (r == 0) {
+              ammos.add(new Ammo(lickers.get(k).lickerLocation()));
+            } else if (r == 1) {
+              herbs.add(new Herb(lickers.get(k).lickerLocation()));
+            }
+            lickers.remove(k);
+          }
+        }
+        grenades.remove(i);
+      }
     }
 
     // Draw all zombies in the array
@@ -136,7 +178,7 @@ void draw() {
       Bullet b = bullets.get(i);
       for (int j = zombies.size() - 1; j >= 0; j--) {
         Zombie z = zombies.get(j);
-        if (z.collides(b.returnLocation()) == true) {
+        if (z.collides(b.returnLocation(), 15) == true) {
           bullets.remove(i);
           int r = int(random(0, 3));
           if (r == 0) {
@@ -155,8 +197,8 @@ void draw() {
     for (int i = bullets.size() - 1; i >= 0; i--) {
       Bullet b = bullets.get(i);
       for (int j = lickers.size() - 1; j >= 0; j--) {
-        Licker z = lickers.get(j);
-        if (z.collides(b.returnLocation()) == true) {
+        Licker l = lickers.get(j);
+        if (l.collides(b.returnLocation(), 20) == true) {
           bullets.remove(i);
           lickers.get(j).lowerHealth();
           if (lickers.get(j).returnHealth() == 0) {
@@ -184,24 +226,24 @@ void draw() {
     // After the player gets damaged, they cannot be injured again for 10 seconds
     if (invincibility >= 600) {
       for (int i = 0; i < zombies.size(); i++) {
-        if (zombies.get(i).collides(survivor.getLocation()) == true) {
+        if (zombies.get(i).collides(survivor.getLocation(), 15) == true) {
           survivor.lowerHealth();
           invincibility = 0;
         }
       }
     }
-    
+
     // If a licker and player touch, damage the player
     // After the player gets damaged, they cannot be injured again for 10 seconds
     if (invincibility >= 600) {
       for (int i = 0; i < lickers.size(); i++) {
-        if (lickers.get(i).collides(survivor.getLocation()) == true) {
+        if (lickers.get(i).collides(survivor.getLocation(), 20) == true) {
           survivor.lowerHealth();
           invincibility = 0;
         }
       }
     }
-    
+
     invincibility++;
     drawAmmoHUD();
     if (frameCount % 60 == 0) {
@@ -210,13 +252,12 @@ void draw() {
       if (timer <= 0) {
         state = 3;
       }
-      
+
       // Once every second, there is a 10% chance a licker will spawn, and a 20% chance a zombie will spawn
-      int r = int(random(0,100)) + 1;
+      int r = int(random(0, 100)) + 1;
       if (r <= 20) {
         lickers.add(new Licker());
-      }
-      else if ( r <= 50) {
+      } else if ( r <= 50) {
         zombies.add(new Zombie());
       }
       // Once every second, the zombies move towards the player
@@ -224,12 +265,12 @@ void draw() {
         zombies.get(i).move(survivor.getLocation());
       }
     }
-    
+
     // If the player dies, go to the death screen
     if (survivor.returnHealth() <= 0) {
       state = 2;
     }
-  } 
+  }
   // If the player has died, display a death screen
   else if (state == 2) {
     background(60, 0, 0);
@@ -256,27 +297,33 @@ void mousePressed() {
     if (mouseX > 35 && mouseX < 195 && mouseY > 165 && mouseY < 380) {
       // Set the survivor to be Leon
       isLeon = true;
+      pistolEquipped = true;
       survivor = new Player(isLeon);
       bullets = new ArrayList <Bullet>();
+      grenades = new ArrayList <Grenade>();
       zombies = new ArrayList <Zombie>();
       lickers = new ArrayList <Licker>();
       herbs = new ArrayList <Herb>();
       ammos = new ArrayList <Ammo>();
       theta = 0.0;
       p = 8;
+      q = 8;
       timer = 100;
       state = 1;
     } else if (mouseX > 240 && mouseX < 370 && mouseY > 165 && mouseY < 380) {
       // Set the survivor to be Claire
       isLeon = false;
+      pistolEquipped = true;
       survivor = new Player(isLeon);
       bullets = new ArrayList <Bullet>();
+      grenades = new ArrayList <Grenade>();
       zombies = new ArrayList <Zombie>();
       lickers = new ArrayList <Licker>();
       herbs = new ArrayList <Herb>();
       ammos = new ArrayList <Ammo>();
       theta = 0.0;
       p = 8;
+      q = 8;
       timer = 100;
       state = 1;
     }
@@ -319,12 +366,26 @@ void keyPressed() {
     }
     // If space key is pressed, and the player has at least one bullet, shoot bullet
     else if (key == ' ') {
-      if (p > 0) {
-        // Shoot the bullet based on the survivors location and direction
-        bullets.add(new Bullet(survivor.returnOrigin(), survivor.returnDirection()));
-        // Lower the number of bullets by one
-        p--;
+      if (pistolEquipped == true) {
+        if (p > 0) {
+          // Shoot the bullet based on the survivors location and direction
+          bullets.add(new Bullet(survivor.returnOrigin(), survivor.returnDirection()));
+          // Lower the number of bullets by one
+          p--;
+        }
+      } 
+      else if (pistolEquipped == false && isLeon == false){
+        if (q > 0) {
+          // Shoot the grenade based on the survivors location and direction
+          grenades.add(new Grenade(survivor.returnOrigin(), survivor.returnDirection()));
+          // Lower the number of grenades by one
+          q--;
+        }
       }
+    }
+    // If e key is pressed, change weapon
+    else if (key == 'e') {
+      pistolEquipped = !pistolEquipped;
     }
   } else if (state == 2 || state == 3) {
     state = 0;

@@ -46,9 +46,9 @@ class Zombie {
     rect(location.x,location.y,15,15);
   }
 
-  // If the zombie collides with an objecr return true
-  boolean collides(PVector v) {
-    if (v.dist(location) <= 15){
+  // If the zombie collides with an object return true
+  boolean collides(PVector v, int s) {
+    if (v.dist(location) <= s){
       return true;
     }
     else {

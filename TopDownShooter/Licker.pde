@@ -48,8 +48,8 @@ class Licker {
   }
 
   // If the licker collides with an objecr return true
-  boolean collides(PVector v) {
-    if (v.dist(location) <= 25){
+  boolean collides(PVector v, int s) {
+    if (v.dist(location) <= s){
       return true;
     }
     else {
