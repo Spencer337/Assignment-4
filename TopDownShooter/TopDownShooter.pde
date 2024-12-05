@@ -12,6 +12,7 @@ int invincibility; // Player will have an invincibility window after taking dama
 int p; // The number of bullets the player currently has
 int state;
 boolean isLeon;
+int timer;
 
 void setup() {
   // Set canvas size
@@ -53,6 +54,10 @@ void draw() {
   {
     // Draw level
     background(0);
+    textSize(30);
+    textAlign(CENTER);
+    fill(255);
+    text(timer, 350, 30);
     rectMode(CORNERS);
     fill(50);
     rect(0, 70, 400, 355);
@@ -87,23 +92,6 @@ void draw() {
     for (int i = 0; i < bullets.size(); i++) {
       bullets.get(i).display();
       bullets.get(i).fly();
-    }
-
-    // Move an array of zombies
-    if (frameCount % 60 == 0) {
-      for (int i = 0; i < zombies.size(); i++) {
-        zombies.get(i).move(survivor.getLocation());
-      }
-    }
-
-    // Every 3 seconds, create a new zombie
-    if (frameCount % 180 == 0) {
-      zombies.add(new Zombie());
-    }
-
-    // Every 6 seconds, create a new zombie
-    if (frameCount % 300 == 0) {
-      lickers.add(new Licker());
     }
 
     // Draw all zombies in the array
@@ -216,11 +204,39 @@ void draw() {
     
     invincibility++;
     drawAmmoHUD();
+    if (frameCount % 60 == 0) {
+      timer --;
+      // If timer has reached 0, go to win screen
+      if (timer <= 0) {
+        state = 3;
+      }
+      
+      // Once every second, there is a 10% chance a licker will spawn, and a 20% chance a zombie will spawn
+      int r = int(random(0,100)) + 1;
+      if (r <= 20) {
+        lickers.add(new Licker());
+      }
+      else if ( r <= 50) {
+        zombies.add(new Zombie());
+      }
+      // Once every second, the zombies move towards the player
+      for (int i = 0; i < zombies.size(); i++) {
+        zombies.get(i).move(survivor.getLocation());
+      }
+    }
+    
+    // If the player dies, go to the death screen
     if (survivor.returnHealth() <= 0) {
       state = 2;
     }
-  } else {
+  } 
+  // If the player has died, display a death screen
+  else if (state == 2) {
     background(60, 0, 0);
+  }
+  // If the timer has ran out, display a win screen
+  else if (state == 3) {
+    background(0, 60, 0);
   }
 }
 
@@ -248,6 +264,7 @@ void mousePressed() {
       ammos = new ArrayList <Ammo>();
       theta = 0.0;
       p = 8;
+      timer = 100;
       state = 1;
     } else if (mouseX > 240 && mouseX < 370 && mouseY > 165 && mouseY < 380) {
       // Set the survivor to be Claire
@@ -260,6 +277,7 @@ void mousePressed() {
       ammos = new ArrayList <Ammo>();
       theta = 0.0;
       p = 8;
+      timer = 100;
       state = 1;
     }
   }
@@ -308,7 +326,7 @@ void keyPressed() {
         p--;
       }
     }
-  } else if (state == 2) {
+  } else if (state == 2 || state == 3) {
     state = 0;
   }
 }
