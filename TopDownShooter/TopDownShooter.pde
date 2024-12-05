@@ -1,6 +1,7 @@
 Player survivor;
 PImage leonStill;
 PImage claireStill;
+PImage sprites;
 ArrayList <Zombie> zombies;
 ArrayList <Bullet> bullets;
 ArrayList <Herb> herbs;
@@ -9,6 +10,7 @@ float theta; // For sinusoidal health bar
 int invincibility; // Player will have an invincibility window after taking damage
 int p; // The number of bullets the player currently has
 int state;
+boolean isLeon;
 
 void setup() {
   // Set canvas size
@@ -16,7 +18,9 @@ void setup() {
   // Initialize objects, arrays, and variables
   leonStill = loadImage("leon-image.png");
   claireStill = loadImage("claire-image.png");
+  sprites = loadImage("RE2Sprites.png");
   invincibility = 600;
+  isLeon = true;
   state = 0;
 }
 
@@ -189,7 +193,8 @@ void mousePressed() {
   if (state == 0) {
     if (mouseX > 35 && mouseX < 195 && mouseY > 165 && mouseY < 380) {
       // Set the survivor to be Leon
-      survivor = new Player();
+      isLeon = true;
+      survivor = new Player(isLeon);
       bullets = new ArrayList <Bullet>();
       zombies = new ArrayList <Zombie>();
       herbs = new ArrayList <Herb>();
@@ -199,7 +204,8 @@ void mousePressed() {
       state = 1;
     } else if (mouseX > 240 && mouseX < 370 && mouseY > 165 && mouseY < 380) {
       // Set the survivor to be Claire
-      survivor = new Player();
+      isLeon = false;
+      survivor = new Player(isLeon);
       bullets = new ArrayList <Bullet>();
       zombies = new ArrayList <Zombie>();
       herbs = new ArrayList <Herb>();
