@@ -38,6 +38,7 @@ void setup() {
 }
 
 void draw() {
+  // Draw the start screen, with images of the two selectable characters
   if (state == 0) {
     background(0);
     textSize(50);
@@ -45,6 +46,7 @@ void draw() {
     fill(157, 6, 6);
     text("Resident Evil 2", width/2, 100);
     stroke(255);
+    rectMode(CORNER);
     if (mouseX > 35 && mouseX < 195 && mouseY > 165 && mouseY < 380) {
       fill(20, 54, 108);
     } else {
@@ -307,7 +309,7 @@ void draw() {
 
     // If a zombie and player touch, damage the player
     // After the player gets damaged, they cannot be injured again for 10 seconds
-    if (invincibility >= 600) {
+    if (invincibility >= 60) {
       for (int i = 0; i < zombies.size(); i++) {
         if (zombies.get(i).collides(survivor.getLocation(), 15) == true) {
           survivor.lowerHealth();
